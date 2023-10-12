@@ -19,12 +19,10 @@ export function constructNetwork(entities, sources) {
 
   const sourcesWithoutOutput = sources.filter((source) => source.output === null);
 
-  entitiesThatAreNotInput.forEach( entity => network.push({ entity, source: sources.find(s => s.output == entity.id) }));
+  entitiesThatAreNotInput.forEach( entity => network.push({ entity, source: sources.find(s => s.output === entity.id) }));
   sourcesWithoutOutput.forEach( source => network.push({ entity: null, source }));
 
-  network.forEach( (node) => {node.parentNodes = getParentNodes(node, entities, sources)})
-
-  return network
+  return network.map((node) => ({ ...node, parentNodes: getParentNodes(node, entities, sources) }));
 }
 
 
