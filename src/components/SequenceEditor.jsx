@@ -4,7 +4,7 @@ import NewSourceBox from './NewSourceBox';
 function SequenceEditor({ entity, addSource, getSourceWhereEntityIsInput }) {
 
   const renderCount = React.useRef(0);
-
+  console.log(entity)
   const addSourceButton = getSourceWhereEntityIsInput(entity.id) !== undefined ? null : (
     <div className="hang-from-node">
       <p>

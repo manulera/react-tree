@@ -1,74 +1,9 @@
 import React from 'react';
 import './App.css';
-import NetworkTree from './components/NetworkTree';
 import { constructNetwork } from './network';
-import Source from './components/Source';
-import SequenceEditor from './components/SequenceEditor';
-import MainSequenceCheckBox from './components/MainSequenceCheckBox';
+import NetWorkNode from './components/NetworkNode';
+import NewSourceBox from './components/NewSourceBox';
 
-/**
- * Generate a list of objects, where every object has:
- * id: the id of an entity in the 'entities' state array
- * jsx: jsx containing a representation of each entity (in this case graphical representation)
- *    of the DNA molecule
- * node: contains the entity
- * @param {Array<entity>} entities array of entities
- * @param {function} addSource passing down the function addSource, so that in the entities that are
- *                        not the input of anything (at the bottom of the tree), there is a button
- *                        to add a new source.
- * @returns the mentioned list
- */
-
-function buildElementListEntities(entities, addSource, getSourceWhereEntityIsInput) {
-  const out = [];
-  entities.forEach((entity) => {
-    out.push({
-      id: entity.id,
-      node: entity,
-      jsx: (
-        <div key={entity.id}>
-          <SequenceEditor {...{ entity, addSource, getSourceWhereEntityIsInput }} />
-        </div>
-      ),
-    });
-  });
-  return out;
-}
-
-/**
- * Generate a list of objects, where every object has:
- * id: the id of an source in the 'sources' state array
- * jsx: jsx containing a representation of each source
- * node: contains the entity
- * @param {Array<source>} sources
- * @param {function} updateSource
- * @param {*} getEntityFromId
- * @returns
- */
-function buildElementListSources(sources, updateSource, getEntityFromId, entitiesNotChildSource, deleteSource) {
-  const out = [];
-  sources.forEach((source) => {
-    let sourceElement = null;
-
-    const inputEntities = source.input.map((entityId) => getEntityFromId(entityId));
-    sourceElement = (
-    <div>
-        <Source
-        key={source.id}
-        {...{
-            sourceId: source.id, updateSource, inputEntities, entitiesNotChildSource,
-        }}
-        />
-    </div>
-    );
-    out.push({
-      id: source.id,
-      node: source,
-      jsx: sourceElement,
-    });
-  });
-  return out;
-}
 
 function App() {
   // A counter with the next unique id to be assigned to a node
@@ -133,11 +68,6 @@ function App() {
 
     // // Add the entity
     updateOrCreateEntity(newEntity, newSource);
-    // TODO probably a nicer way of doing this
-    const newSourceArray = sources.map((source) => (source.id === newSource.id ? { ...newSource, output: newEntity.id } : source));
-    console.log(sources)
-    console.log(newSourceArray);
-    console.log(newEntity);
     setSources(sources.map((source) => (source.id === newSource.id ? { ...newSource, output: newEntity.id } : source)));
   };
 
@@ -173,6 +103,8 @@ function App() {
     }
   });
 
+  const getEntitiesNotChildSource = () => entities.filter((entity) => !idsEntitiesWithChildSource.includes(entity.id));
+
   // This function sets the state of mainSequenceId (the id of the sequence that is displayed
   // outside of the tree in the rich editor). It is passed to the MainSequenceCheckBox, to
   // have one at each node.
@@ -180,21 +112,8 @@ function App() {
     const newMainSequenceId = mainSequenceId !== id ? id : null;
     setMainSequenceId(newMainSequenceId);
   };
-  // Here we build an array of objects representing the nodes of the tree
-  // each object looks like: { data: entity or source, ancestors: [] }
-  // where data is the node, which can be an entity or a source, and ancestors is just
-  // an array of the parent nodes connected to this node.
-  //
-  // As an example, for a relationship source1 -> entity2 -> source3 -> entity4
-  // In the application state, this would be:
-  // sources: [
-  //  {id: 1, input: null, output: [2]}, {id: 3, input: 2, output: [4]}
-  // ]
-  // entities: [{id:2}, {id:4}]
-  // and entities would only have their ids.
-  // In the output of this function, this would become:
-  // nodes: [{id:4, ancestors: [3], kind: entity}, {id:3, ancestors: [2], kind: source}, etc.]
-  const network = constructNetwork(entities, sources);
+
+  const network2 = constructNetwork(entities, sources);
   // A function to delete a source and its children
   const deleteSource = (sourceId) => {
     const sources2delete = [];
@@ -211,44 +130,25 @@ function App() {
     setEntities(entities.filter((e) => !entities2delete.includes(e.id)));
   };
 
-  // Here we make an array of objects in which each one has the id, and the jsx that will go
-  // into each node in the tree.
-  let elementList = buildElementListEntities(entities, addSource, getSourceWhereEntityIsInput).concat(
-    buildElementListSources(sources, updateSource, getEntityFromId, entitiesNotChildSource, deleteSource),
-  );
-
-  // Here we append the toggle element to each jsx element in elemenList
-  elementList = elementList.map((element) => {
-    const newElement = { ...element };
-    newElement.jsx = (
-      <div>
-        {element.jsx}
-        {element.node.kind !== 'source' && (
-        <MainSequenceCheckBox
-          {...{ id: element.id, mainSequenceId, updateMainSequenceId }}
-        />
-        )}
-        <div className="corner-id">
-          {element.id}
-        </div>
-      </div>
-    );
-    return newElement;
-  });
-
-  // This function returns a node from elementList by passing the id. This is useful
-  // for the main sequence editor, which will perform a different task for a source
-  // or a sequence
-  const nodeFinder = (id) => elementList.find((element) => element.id === id);
   return (
     <div className="App">
       <div className="app-container">
         <div className="network-container">
-          <NetworkTree {...{
-            network, nodeFinder, addSource,
-          }}
-          />
+          <div className="tf-tree tf-ancestor-tree">
+            <ul>
+              {network2.map((node) => (
+                <NetWorkNode node={node} key={node.source.id} {...{updateSource, getEntitiesNotChildSource, addSource, getSourceWhereEntityIsInput}}/>)
+              )}
+              {/* There is always a box on the right side to add a source*/}
+              <li key="new_source_box">
+                <span className="tf-nc"><span className="node-text"><NewSourceBox {...{ addSource }} /></span></span>
+              </li>
+            </ul>
+          </div>
         </div>
+        <code style={{whiteSpace: 'pre-wrap', textAlign: 'left', display: 'inline-block'}}>
+          {JSON.stringify(network2, null, 4)}
+        </code>
       </div>
     </div>
   );

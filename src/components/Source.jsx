@@ -1,6 +1,6 @@
 import React from 'react';
 
-function MultipleInputsSelector({
+const MultipleInputsSelector = React.memo(function ({
     entityNotChildSourceIds, inputEntityIds, sourceId, updateSource
   }) {
     const onChange = (event) => {
@@ -19,20 +19,20 @@ function MultipleInputsSelector({
       <div className="multiple-input-selector">
         <h3>Select several inputs for this step</h3>
         <label htmlFor="select_multiple_inputs">
-          <select multiple="true" value={inputEntityIds} onChange={onChange} id="select_multiple_inputs">
+          <select multiple value={inputEntityIds} onChange={onChange} id="select_multiple_inputs">
             {options.map((id) => <option key={id} value={id}>{id}</option>)}
           </select>
         </label>
       </div>
     );
-  }
+})
 
 // A component representing the ligation of several fragments
-function Source({
-  sourceId, updateSource, inputEntities, entitiesNotChildSource,
+const Source = React.memo(function ({
+  sourceId, updateSource, inputEntities, getEntitiesNotChildSource,
 }) {
-
-  const entityNotChildSourceIds = entitiesNotChildSource.map((e) => e.id);
+  const renderCount = React.useRef(0);
+  const entityNotChildSourceIds = getEntitiesNotChildSource().map((e) => e.id);
   const inputEntityIds = inputEntities.map((e) => e.id);
 
   const commitSource = (event) => {
@@ -42,6 +42,7 @@ function Source({
 
   return (
     <div className="ligation">
+      <h3>{renderCount.current++}</h3>
       <MultipleInputsSelector {...{
         entityNotChildSourceIds, inputEntityIds, sourceId, updateSource
       }}
@@ -51,6 +52,6 @@ function Source({
       </form>
     </div>
   );
-}
+})
 
 export default Source;
