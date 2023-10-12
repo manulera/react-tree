@@ -1,0 +1,32 @@
+{
+    "name": "react_tree",
+    "homepage": "./",
+    "version": "0.1.0",
+    "private": true,
+    "dependencies": {
+        "react": "^18.2.0",
+        "react-dom": "^18.2.0",
+        "react-icons": "^4.3.1"
+    },
+    "scripts": {
+        "start": "yarn run vite --force --port 3000",
+        "build": "vite build"
+    },
+    "browserslist": {
+        "production": [
+            ">0.2%",
+            "not dead",
+            "not op_mini all"
+        ],
+        "development": [
+            "last 1 chrome version",
+            "last 1 firefox version",
+            "last 1 safari version"
+        ]
+    },
+    "devDependencies": {
+        "@vitejs/plugin-react": "^4.0.3",
+        "vite": "4.3.6"
+    },
+    "packageManager": "yarn@3.6.4"
+}
